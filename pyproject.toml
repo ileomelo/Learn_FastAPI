@@ -11,6 +11,7 @@ python = "^3.12"
 fastapi = "^0.109.2"
 uvicorn = "^0.27.0.post1"
 ignr = "^2.2"
+email-validator = "^2.1.0.post1"
 
 
 [tool.poetry.group.dev.dependencies]
@@ -23,12 +24,12 @@ httpx = "^0.26.0"
 isort = "^5.13.2"
 
 [tool.ruff]
-line-length = 80
+line-length = 79
 exclude = [".venv", 'migrations']
 
 [tool.isort]
 profile = 'black'
-line_length = 80
+line_length = 79
 extend_skip = ['migrations']
 
 [tool.pytest.ini_options]
@@ -42,7 +43,7 @@ lint = 'ruff . && blue --check . --diff'
 format = 'blue .  && isort .'
 run = 'uvicorn fast_hero.app:app --reload'
 pre_test = 'task lint'
-test = 'pytest -s -x --cov=fast_zero -vv'
+test = 'pytest -s -x --cov=fast_hero -vv'
 post_test = 'coverage html'
 
 
