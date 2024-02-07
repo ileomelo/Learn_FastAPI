@@ -1,12 +1,4 @@
-import pytest
-from fastapi.testclient import TestClient
-
-from fast_hero.app import app
-
-
-@pytest.fixture
-def client():
-    return TestClient(app)
+from fast_hero.schemas import UserPublic
 
 
 def test_root_return_200(client):
@@ -44,36 +36,39 @@ def test_create_user(client):
 
 
 def test_read_users(client):
-    response = client.get('/users/')
+    response = client.get('/users')
 
     assert response.status_code == 200
 
-    assert response.json() == {
-        'users': [{'username': 'Alice', 'email': 'alice@mail.com', 'id': 1}]
-    }
+    assert response.json() == {'users': []}
 
 
-def test_update_user(client):
+def test_read_users_with_users(client, user):
+    user_schema = UserPublic.model_validate(user).model_dump()
+    response = client.get('/users/')
+
+    assert response.json() == {'users': [user_schema]}
+
+
+def test_update_user(client, user):
     response = client.put(
         '/users/1',
         json={
-            'username': 'John Doe',
-            'email': 'jhon@mail.com',
-            'password': 'setpassword',
+            'username': 'bob',
+            'email': 'bob@example.com',
+            'password': 'mynewpassword',
         },
     )
-
     assert response.status_code == 200
-
     assert response.json() == {
-        'username': 'John Doe',
-        'email': 'jhon@mail.com',
+        'username': 'bob',
+        'email': 'bob@example.com',
         'id': 1,
     }
 
 
-def test_user_delete(client):
+def test_user_delete(client, user):
     response = client.delete('/users/1')
 
     assert response.status_code == 200
-    assert response.json() == {'message': 'User delete!!'}
+    assert response.json() == {'message': 'User deleted'}
