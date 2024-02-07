@@ -57,16 +57,16 @@ def test_update_user(client):
     response = client.put(
         '/users/1',
         json={
-            'username': 'Jhon Doe',
+            'username': 'John Doe',
             'email': 'jhon@mail.com',
-            'password': 'secretpassword',
+            'password': 'setpassword',
         },
     )
 
     assert response.status_code == 200
 
     assert response.json() == {
-        'username': 'Jhon Doe',
+        'username': 'John Doe',
         'email': 'jhon@mail.com',
         'id': 1,
     }
