@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -10,20 +10,24 @@ from sqlalchemy.orm import Session
 from fast_hero.database import get_session
 from fast_hero.models import User
 from fast_hero.schemas import TokenData
+from fast_hero.settings import Settings
 
-SECRET_KEY = 'your-secret-key'  # Provisorio
-ALGORITHM = 'HS256'
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+settings = Settings()
+
 pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl='token')
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth/token')
 
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(
+        minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
+    )
     to_encode.update({'exp': expire})
-    encode_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    encode_jwt = jwt.encode(
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+    )
     return encode_jwt
 
 
@@ -48,7 +52,9 @@ async def get_current_user(
     )
 
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
         username: str = payload.get('sub')
         if not username:
             raise credentials_exception
