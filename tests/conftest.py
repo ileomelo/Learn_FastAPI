@@ -1,3 +1,4 @@
+import factory
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -42,11 +43,21 @@ def client(session):
 @pytest.fixture
 def user(session):
     password = 'testpassword'
-    user = User(
-        username='Test',
-        email='test@mail.com',
-        password=get_password_hash(password),
-    )
+    user = UserFactory(password=get_password_hash(password))
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+
+    user.clean_password = 'testpassword'
+
+    return user
+
+
+@pytest.fixture
+def other_user(session):
+    password = 'testpassword'
+    user = UserFactory(password=get_password_hash(password))
+
     session.add(user)
     session.commit()
     session.refresh(user)
@@ -64,3 +75,17 @@ def token(client, user):
     )
 
     return response.json()['access_token']
+
+
+# Define uma fábrica para o modelo User, herdando de factory.Factory
+class UserFactory(factory.Factory):
+    # Uma classe interna Meta é usada para configurar a fábrica
+    class Meta:
+        # Define o modelo o qual a fábrica está construindo instâncias
+        model = User
+
+    # A cada chamada da fábrica o valor n é incrementado, então cada instancia gerada tera um id único
+    id = factory.Sequence(lambda n: n)
+    username = factory.LazyAttribute(lambda obj: f'test{obj.id}')
+    email = factory.LazyAttribute(lambda obj: f'{obj.username}@test.com')
+    password = factory.LazyAttribute(lambda obj: f'{obj.username}@example.com')
