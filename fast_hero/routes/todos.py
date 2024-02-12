@@ -79,7 +79,6 @@ Dessa forma, somente os campos enviados ao schema sejam atualizados no objeto.
 def patch_todo(
     todo_id: int, session: DatabaseSession, user: CurrentUser, todo: TodoUpdate
 ):
-
     db_todo = session.scalar(
         select(Todo).where(Todo.user_id == user.id, Todo.id == todo_id)
     )
@@ -99,7 +98,6 @@ def patch_todo(
 
 @router.delete('/{todo_id}', response_model=Message)
 def delete_todo(todo_id: int, session: DatabaseSession, user: CurrentUser):
-
     todo = session.scalar(
         select(Todo).where(Todo.user_id == user.id, Todo.id == todo_id)
     )
