@@ -3,27 +3,23 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
 
 from fast_hero.app import app
 from fast_hero.database import get_session
 from fast_hero.models import Base, User
 from fast_hero.security import get_password_hash
+from fast_hero.settings import Settings
 
 
 @pytest.fixture
 def session():
-    engine = create_engine(
-        'sqlite:///:memory:',
-        connect_args={'check_same_thread': False},
-        poolclass=StaticPool,
-    )
-
+    engine = create_engine(Settings().DATABASE_URL)
+    Session = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     Base.metadata.create_all(engine)
 
-    Session = sessionmaker(bind=engine)
-
-    yield Session()
+    with Session() as session:
+        yield session
+        session.rollback()
 
     Base.metadata.drop_all(engine)
 
